@@ -1,6 +1,6 @@
 # mypybot
 
-使用Python写的自用Telegram机器人。
+使用Python编写的自用Telegram机器人，基于[pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI)
 
 ## 安装
 
@@ -18,11 +18,9 @@ python main.py
 * Aria2管理（添加、暂停、恢复、删除下载，显示进度）
 * 指定文件夹内文件的接收、删除、上传Onedrive
 * Onedrive文件的浏览、分享、取消分享
+* 二次元相关
+  >nhentai下载支持：所有nhentai.to，大部分nhentai.net，大部分nhentai.xxx
 * 支持简单的用户验证
-
-计划：
-
-还没想好
 
 ### 功能演示
 
@@ -31,6 +29,8 @@ python main.py
 ![](screenshots/3.png)
 ![](screenshots/4.png)
 ![](screenshots/5.png)
+![](screenshots/6.png)
+![](screenshots/7.png)
 
 ## 配置文件
 
@@ -74,7 +74,7 @@ client_secret =
 
 ### File
 
-* `folder`：文件夹路径，此文件夹用于`/sendfile`、`/uploadfile`、`/rmfile`命令
+* `folder`：文件夹路径，此文件夹用于`/sendfile`、`/uploadfile`等命令
 
 ### Onedrive
 

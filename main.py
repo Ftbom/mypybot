@@ -4,6 +4,7 @@ from tools import *
 import onedrive_files
 from telebot import TeleBot
 from telebot.util import quick_markup
+from telebot.types import ReplyKeyboardMarkup
 
 ###############################
 #############初始化#############
@@ -11,6 +12,7 @@ from telebot.util import quick_markup
 
 #记录消息对应数据和最新消息的时间
 files_info_store = {"last_date": 0}
+files_receive_store = {"last_date": 0}
 files_remove_store = {"last_date": 0}
 aria2_pause_store = {"last_date": 0}
 aria2_unpause_store = {"last_date": 0}
@@ -61,8 +63,9 @@ def send_welcome(message):
 *多功能机器人*
 已实现功能：
 ● Aria2管理（添加、暂停、恢复、删除下载，显示进度）
-● 指定文件夹内文件的接收、删除、上传
+● 指定文件夹内文件的接收、发送、删除、上传
 ● Onedrive文件的浏览、分享、取消分享
+● 二次元相关
 ● 获取用户id
 输入 /help 获取帮助
 '''
@@ -93,10 +96,15 @@ def send_welcome(message):
 /aria2rmstopped - 删除aria2中已停止的下载
 *文件相关*
 /sendfile - 发送文件到文件夹内
+/receivefile - 接收文件夹内的文件
 /uploadfile - 通过Onedrive上传指定文件
 /rmfile - 删除文件夹内的文件
 *Onedrive*
 /onedrive - 管理Onedrive文件
+*Anime*
+/tracemoe - 动漫截图搜索
+/waifupics - 随机二次元图片
+/nhentai - 下载nhentai本子到文件夹内
 *其他*
 /getid - 获取用户id
 '''
@@ -120,6 +128,39 @@ def onedrive(message):
     bot.send_message(message.chat.id, text, reply_markup = quick_markup(button, row_width = 4))
 
 ###############################
+###########Anime命令###########
+###############################
+@bot.message_handler(commands = ['tracemoe'])
+@authentication
+def tracemoe(message):
+    url = message.text.replace('/tracemoe ', '')
+    #判断是否输入url
+    if (url.replace(' ', '') == '') or (url == '/tracemoe'):
+        msg = bot.send_message(message.chat.id, "⚠️ 请发送图片")
+        bot.register_next_step_handler(msg, tg_trace_moe, bot)
+    else:
+        tg_trace_moe(message, bot, url)
+
+@bot.message_handler(commands = ['waifupics'])
+@authentication
+def waifupics(message):
+    markup = ReplyKeyboardMarkup(resize_keyboard = True)
+    markup.add("sfw", "nsfw", "取消")
+    msg = bot.send_message(message.chat.id, "⛩ 选择类型", reply_markup = markup)
+    bot.register_next_step_handler(msg, waifu_pics_type, bot)
+
+@bot.message_handler(commands = ['nhentai'])
+@authentication
+def nhentai(message):
+    url = message.text.replace('/nhentai ', '')
+    #判断是否输入url
+    if (url.replace(' ', '') == '') or (url == '/nhentai'):
+        bot.send_message(message.chat.id, "❗️请在/nhentai后输入链接")
+        return
+    else:
+        download_nhentai(message, url, bot, folder_path)
+
+###############################
 ############文件命令############
 ################################
 @bot.message_handler(commands = ['sendfile'])
@@ -127,6 +168,20 @@ def onedrive(message):
 def send_file(message):
     msg = bot.send_message(message.chat.id, "⚠️ 请发送文件")
     bot.register_next_step_handler(msg, receive_file, bot, folder_path)
+
+@bot.message_handler(commands = ['receivefile'])
+@authentication
+def receive_file(message):
+    global files_receive_store
+    #获取文件夹内的所有文件
+    files = get_files(folder_path)
+    #更新消息信息
+    files_receive_store = {"last_date": message.date, 'data': files}
+    #获取文本和按键
+    text = '📦 选择要接收的文件：\n'
+    text, button_data = get_files_text(text, files, f'receive_{message.date}')
+    button_data['取消'] = {'callback_data': 'cancel'}
+    bot.send_message(message.chat.id, text, reply_markup = quick_markup(button_data, row_width = 4))
 
 @bot.message_handler(commands = ['uploadfile'])
 @authentication
@@ -289,6 +344,15 @@ def refresh(call):
         bot.answer_callback_query(call.id)
         #上传文件
         upload_file(file_path, call.message, bot)
+        return
+    elif ('receive_' == call.data[0 : 8]):
+        file_path = callback_func(files_receive_store, 'receive', call, bot)
+        if (file_path == ''):
+            return
+        bot.answer_callback_query(call.id)
+        #接收文件
+        with open(file_path, 'rb') as f:
+            bot.send_document(call.message.chat.id, f)
         return
     elif ('remove_' == call.data[0 : 7]):
         file_path = callback_func(files_remove_store, 'remove', call, bot)

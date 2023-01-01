@@ -1,9 +1,15 @@
 import os
 import json
+import anime
+import shutil
 import base64
 import requests
 import configparser
 import microsoft_token
+from re import sub
+from bs4 import BeautifulSoup
+from telebot.util import quick_markup
+from telebot.types import ReplyKeyboardRemove, ReplyKeyboardMarkup
 
 #Onedrive API相关
 api_baseurl = 'https://graph.microsoft.com/v1.0/me'
@@ -222,4 +228,129 @@ def callback_func(store, text, call, bot):
         bot.answer_callback_query(call.id)
         return ''
     num = int(call.data.replace(f'{text}_{store["last_date"]}_', ''))
-    return store['data'][num] 
+    return store['data'][num]
+
+def tg_trace_moe(message, bot, url = ''):
+    if (url == ''):
+        #获取图片url
+        if (message.photo == None):
+            bot.send_message(message.chat.id, "❗️ 不是图片！")
+            return
+        else:
+            file_id = message.photo[-1].file_id
+            url = bot.get_file_url(file_id)
+    else:
+        pass
+    #搜索
+    result = anime.trace_moe(url)
+    if ('error' in result):
+        bot.send_message(message.chat.id, f"❌ {result['error']}")
+        return
+    text = f'''
+<b>标题</b>：{result['info']['native_name']}
+            <i>{result['info']['romaji_name']}</i>
+<b>文件名</b>：{result['filename']}
+<b>集</b>：{result['episode']}
+<b>时间段</b>：{result['from']}-{result['to']}
+<b>相似度</b>：{int(result['similarity'] * 100) / 100}
+'''
+    button = {"AniList": {'url': result['anilist']},
+            "图片": {'url': result['image']},
+            "片段": {'url': result['video']}}
+    bot.send_photo(message.chat.id, photo = result['info']['cover'], caption = text, parse_mode = "HTML", reply_markup = quick_markup(button, row_width = 3))
+
+def download_nhentai(message, url: str, bot, folder_path):
+    if url[-1] == '/':
+        url = url[: -1]
+    #nhentai.net和nhentai.xxx
+    url = url.replace('.net/g', '.to/g')
+    url = url.replace('.xxx/g', '.to/g')
+    r = requests.get(url, headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
+        "Referer" : 'https://nhentai.to'
+    })
+    soup = BeautifulSoup(r.content, 'html.parser')
+    #获取本子标题
+    title = soup.find(id = 'info').find('h1').get_text()
+    r = requests.get(url + '/1', headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
+        "Referer" : 'https://nhentai.to'
+    })
+    soup = BeautifulSoup(r.content, 'html.parser')
+    baseimage = soup.find(id = 'image-container').img.attrs['src']
+    #javascript内容
+    scripts = soup.find_all('script')
+    for script in scripts:
+        if script.get_text().find('var reader = new N.reader({') != -1:
+            img_data = script.get_text()
+            break
+    #获取每页信息
+    images = img_data[img_data.find('"pages": ') + 9 : img_data.find('"cover":') - 22]
+    images = json.loads(images)
+    #获取图片链接公共部分
+    if images[0]['t'] == 'j':
+        baseimage = baseimage.replace('1.jpg', '')
+    elif images[0]['t'] == 'p':
+        baseimage = baseimage.replace('1.png', '')
+    elif images[0]['t'] == 'g':
+        baseimage = baseimage.replace('1.gif', '')
+    else:
+        baseimage = baseimage.replace('1.jpg', '')
+    i = 1
+    if os.path.exists(os.path.join(folder_path, 'temp')):
+        shutil.rmtree(os.path.join(folder_path, 'temp'), ignore_errors=True)
+    os.mkdir(os.path.join(folder_path, 'temp'))
+    msg = bot.send_message(message.chat.id, f"⬇️ 下载中：\n{title}\n0/{len(images)}")
+    for image in images:
+        if image['t'] == 'j':
+            img_url = baseimage + f'{i}' + '.jpg'
+        elif image['t'] == 'p':
+            img_url = baseimage + f'{i}' + '.png'
+        elif image['t'] == 'g':
+            img_url = baseimage + f'{i}' + '.gif'
+        else:
+            img_url = baseimage + f'{i}' + '.jpg'
+        r = requests.get(img_url, headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0',
+        "Referer" : 'https://nhentai.to'
+        })
+        with open(os.path.join(folder_path, f'temp/{i}.jpg'), 'wb') as f:
+            f.write(r.content)
+        bot.edit_message_text(f"⬇️ 下载中：\n{title}\n{i}/{len(images)}", chat_id = message.chat.id, message_id = msg.message_id)
+        i = i + 1
+    #去除非法字符
+    title = sub(r"[\/\\\:\*\?\"\<\>\|]", "_", title)
+    shutil.make_archive(os.path.join(folder_path, title), 'zip', os.path.join(folder_path, 'temp/'))
+    shutil.rmtree(os.path.join(folder_path, 'temp'), ignore_errors=True)
+
+def waifu_pics_type(message, bot):
+    if (message.text == 'sfw'):
+        #bot.send_message(message.chat.id, "⛩ 选择类型：SFW", reply_markup = ReplyKeyboardRemove())
+        markup = ReplyKeyboardMarkup(resize_keyboard = True, row_width = 4)
+        markup.add('waifu', 'neko', 'shinobu', 'megumin', 'bully',
+        'cuddle', 'cry', 'hug', 'awoo', 'kiss', 'lick', 'pat', 'smug',
+        'bonk', 'yeet', 'blush', 'smile', 'wave', 'highfive', 'handhold',
+        'nom', 'bite', 'glomp', 'slap', 'kill', 'kick', 'happy', 'wink',
+        'poke', 'dance', 'cringe', "取消")
+    elif (message.text == 'nsfw'):
+        #bot.send_message(message.chat.id, "⛩ 选择类型：NSFW", reply_markup = ReplyKeyboardRemove())
+        markup = ReplyKeyboardMarkup(resize_keyboard = True, row_width = 4)
+        markup.add('waifu', 'neko', 'trap', 'blowjob', '取消')
+    elif (message.text == '取消'):
+        bot.send_message(message.chat.id, "⛩ 取消操作", reply_markup = ReplyKeyboardRemove())
+        return
+    else:
+        bot.send_message(message.chat.id, "❌ 类型错误", reply_markup = ReplyKeyboardRemove())
+        return
+    msg = bot.send_message(message.chat.id, "⛩ 选择类别", reply_markup = markup)
+    bot.register_next_step_handler(msg, waifu_pics_category, bot, message.text)
+
+def waifu_pics_category(message, bot, type):
+    if (message.text == '取消'):
+        bot.send_message(message.chat.id, "⛩ 取消操作", reply_markup = ReplyKeyboardRemove())
+        return
+    result = anime.waifu_pics(type, message.text)
+    if ('error' in result):
+        bot.send_message(message.chat.id, f"❌ {result['error']}", reply_markup = ReplyKeyboardRemove())
+        return
+    bot.send_photo(message.chat.id, photo = result['url'], reply_markup = ReplyKeyboardRemove())
