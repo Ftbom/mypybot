@@ -222,10 +222,10 @@ def get_id(message):
 
 @bot.message_handler(commands = ['systemstatus'])
 @authentication
-def get_id(message):
-    button = {'刷新': {'callback_data': 'refresh'}, '取消': {'callback_data': 'cancel'}}
+def system_status(message):
+    button = {'刷新': {'callback_data': 'system_refresh'}, '取消': {'callback_data': 'cancel'}}
     text = system.system_info() + '\n' + system.system_status()
-    bot.send_message(message.chat.id, text, reply_markup = quick_markup(button, row_width = 4), parse_mode = "Markdown")
+    bot.send_message(message.chat.id, text, reply_markup = quick_markup(button, row_width = 4), parse_mode = "HTML")
 
 ###############################
 ###########Aria2命令############
@@ -331,7 +331,7 @@ def refresh(call):
         button = {'刷新': {'callback_data': 'system_refresh'}, '取消': {'callback_data': 'cancel'}}
         text = system.system_info() + '\n' + system.system_status()
         if not (call.message.text.replace(' ', '').replace('\n', '') == text.replace(' ', '').replace('\n', '')):
-            bot.edit_message_text(text, chat_id = call.message.chat.id, message_id = call.message.message_id, parse_mode = "Markdown", reply_markup = quick_markup(button, row_width = 4))
+            bot.edit_message_text(text, chat_id = call.message.chat.id, message_id = call.message.message_id, parse_mode = "HTML", reply_markup = quick_markup(button, row_width = 4))
         bot.answer_callback_query(call.id)
         return
     elif ('cancel' == call.data):
