@@ -5,12 +5,8 @@ import platform
 def system_info():
     info = {}
     info['platform'] = platform.system()
-    info['platform-release'] = platform.release()
     info['platform-version'] = platform.version()
-    info['processor'] = platform.processor()
-    info['ram'] = f"{int(psutil.virtual_memory().total / (1024.0 ** 3) * 10) / 10} GB"
-    return f'''<b>系统</b>：{info['platform']}\n<b>发行版</b>：{info['platform-version']}\n<b>版本</b>：{info['platform-release']}
-<b>处理器</b>：{info['processor']}\n<b>总内存</b>：{info['ram']}'''
+    return f'''<b>系统</b>：{info['platform']}\n<b>发行版</b>：{info['platform-version']}'''
 
 def system_status():
     cpu_times = psutil.cpu_times()
