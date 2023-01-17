@@ -1,5 +1,6 @@
 import os
 import aria2
+import system
 from tools import *
 import onedrive_files
 from telebot import TeleBot
@@ -66,6 +67,7 @@ def send_welcome(message):
 ● 指定文件夹内文件的接收、发送、删除、上传
 ● Onedrive文件的浏览、分享、取消分享
 ● 二次元相关
+● 获取系统信息
 ● 获取用户id
 输入 /help 获取帮助
 '''
@@ -89,7 +91,7 @@ def send_welcome(message):
 *Aria2相关*
 /aria2add - 添加aria2下载
 /aria2torrent - 通过种子文件添加aria2下载
-/aria2static - 显示aria2下载状态
+/aria2status - 显示aria2下载状态
 /aria2pause - 暂停aria2中的下载
 /aria2unpause - 恢复aria2中已暂停的下载
 /aria2remove - 删除aria2中的下载
@@ -107,6 +109,7 @@ def send_welcome(message):
 /nhentai - 下载nhentai本子到文件夹内
 *其他*
 /getid - 获取用户id
+/systemstatus - 获取系统信息
 '''
 , parse_mode = 'Markdown')
 
@@ -217,6 +220,13 @@ def remove_file(message):
 def get_id(message):
     bot.send_message(message.chat.id, message.from_user.id)
 
+@bot.message_handler(commands = ['systemstatus'])
+@authentication
+def get_id(message):
+    button = {'刷新': {'callback_data': 'refresh'}, '取消': {'callback_data': 'cancel'}}
+    text = system.system_info() + '\n' + system.system_status()
+    bot.send_message(message.chat.id, text, reply_markup = quick_markup(button, row_width = 4), parse_mode = "Markdown")
+
 ###############################
 ###########Aria2命令############
 ################################
@@ -240,10 +250,10 @@ def aria2_add_torrent(message):
     msg = bot.send_message(message.chat.id, "⚠️ 请发送种子文件")
     bot.register_next_step_handler(msg, add_torrent, bot, Aria2)
 
-@bot.message_handler(commands = ['aria2static'])
+@bot.message_handler(commands = ['aria2status'])
 @authentication
 def show_active(message):
-    button = {'刷新': {'callback_data': 'refresh'}, '取消': {'callback_data': 'cancel'}}
+    button = {'刷新': {'callback_data': 'system_refresh'}, '取消': {'callback_data': 'cancel'}}
     text = generate_text(Aria2)
     bot.send_message(message.chat.id, text, reply_markup = quick_markup(button, row_width = 4))
 
@@ -315,6 +325,13 @@ def refresh(call):
         #若Aria2状态发生变化，更新消息
         if not (call.message.text.replace(' ', '').replace('\n', '') == text.replace(' ', '').replace('\n', '')):
             bot.edit_message_text(text, chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup = quick_markup(button, row_width = 4))
+        bot.answer_callback_query(call.id)
+        return
+    elif (call.data == 'system_refresh'):
+        button = {'刷新': {'callback_data': 'system_refresh'}, '取消': {'callback_data': 'cancel'}}
+        text = system.system_info() + '\n' + system.system_status()
+        if not (call.message.text.replace(' ', '').replace('\n', '') == text.replace(' ', '').replace('\n', '')):
+            bot.edit_message_text(text, chat_id = call.message.chat.id, message_id = call.message.message_id, parse_mode = "Markdown", reply_markup = quick_markup(button, row_width = 4))
         bot.answer_callback_query(call.id)
         return
     elif ('cancel' == call.data):
