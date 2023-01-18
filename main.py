@@ -237,7 +237,7 @@ def custom(message):
         for msg in msgs:
             bot.send_message(message.chat.id, msg, parse_mode = "HTML")
     except:
-        bot.send_message(message.chat.id, "custom.py文件导入失败")
+        bot.send_message(message.chat.id, "⚠️ custom.py文件导入失败")
 
 ###############################
 ###########Aria2命令############
@@ -265,7 +265,7 @@ def aria2_add_torrent(message):
 @bot.message_handler(commands = ['aria2status'])
 @authentication
 def show_active(message):
-    button = {'刷新': {'callback_data': 'system_refresh'}, '取消': {'callback_data': 'cancel'}}
+    button = {'刷新': {'callback_data': 'refresh'}, '取消': {'callback_data': 'cancel'}}
     text = generate_text(Aria2)
     bot.send_message(message.chat.id, text, reply_markup = quick_markup(button, row_width = 4))
 
