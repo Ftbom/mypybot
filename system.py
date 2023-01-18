@@ -2,6 +2,7 @@ import time
 import psutil
 import platform
 
+#系统基本信息
 def system_info():
     info = {}
     info['platform'] = platform.system()
@@ -9,11 +10,12 @@ def system_info():
     return f'''<b>系统</b>：{info['platform']}\n<b>发行版</b>：{info['platform-version']}'''
 
 def system_status():
-    cpu_times = psutil.cpu_times()
-    cpu_percent = psutil.cpu_percent(interval = 0.5)
-    virtual_memory = psutil.virtual_memory()
-    swap_memory = psutil.swap_memory()
-    disk_usage = psutil.disk_usage('/')
+    cpu_times = psutil.cpu_times() #cpu使用时间
+    cpu_percent = psutil.cpu_percent(interval = 0.5) #cpu占用率
+    virtual_memory = psutil.virtual_memory() #内存信息
+    swap_memory = psutil.swap_memory() #交换内存信息
+    disk_usage = psutil.disk_usage('/') #硬盘信息
+    #网速计算
     net_io_counter_last = psutil.net_io_counters()
     time.sleep(0.5)
     net_io_counter_now = psutil.net_io_counters()

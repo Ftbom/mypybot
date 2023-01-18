@@ -18,9 +18,12 @@ python main.py
 * Aria2管理（添加、暂停、恢复、删除下载，显示进度）
 * 指定文件夹内文件的接收、删除、上传Onedrive
 * Onedrive文件的浏览、分享、取消分享
+* 获取系统信息
 * 二次元相关
   >nhentai下载支持：所有nhentai.to，大部分nhentai.net，大部分nhentai.xxx
 * 支持简单的用户验证
+
+`/custom`命令执行custom.py文件内的run函数，通过编写custom.py文件执行自定义功能。run函数返回值为字符串数组，字符串使用[HTML格式](https://core.telegram.org/bots/api#html-style)
 
 ### 功能演示
 

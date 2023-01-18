@@ -110,6 +110,7 @@ def send_welcome(message):
 *其他*
 /getid - 获取用户id
 /systemstatus - 获取系统信息
+/custom - 自定义操作
 '''
 , parse_mode = 'Markdown')
 
@@ -226,6 +227,17 @@ def system_status(message):
     button = {'刷新': {'callback_data': 'system_refresh'}, '取消': {'callback_data': 'cancel'}}
     text = system.system_info() + '\n' + system.system_status()
     bot.send_message(message.chat.id, text, reply_markup = quick_markup(button, row_width = 4), parse_mode = "HTML")
+
+@bot.message_handler(commands = ['custom'])
+@authentication
+def custom(message):
+    try:
+        import custom
+        msgs = custom.run()
+        for msg in msgs:
+            bot.send_message(message.chat.id, msg, parse_mode = "HTML")
+    except:
+        bot.send_message(message.chat.id, "custom.py文件导入失败")
 
 ###############################
 ###########Aria2命令############
