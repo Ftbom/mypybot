@@ -4,6 +4,7 @@ import system
 from tools import *
 import onedrive_files
 from telebot import TeleBot
+from video_dl import video_download
 from telebot.util import quick_markup
 from telebot.types import ReplyKeyboardMarkup
 
@@ -66,6 +67,7 @@ def send_welcome(message):
 ● Aria2管理（添加、暂停、恢复、删除下载，显示进度）
 ● 指定文件夹内文件的接收、发送、删除、上传
 ● Onedrive文件的浏览、分享、取消分享
+● 通过yt-dlp下载视频
 ● 二次元相关
 ● 获取系统信息
 ● 获取用户id
@@ -110,6 +112,7 @@ def send_welcome(message):
 *其他*
 /getid - 获取用户id
 /systemstatus - 获取系统信息
+/ytdl - 通过yt-dlp下载视频
 /custom - 自定义操作
 '''
 , parse_mode = 'Markdown')
@@ -238,6 +241,15 @@ def custom(message):
             bot.send_message(message.chat.id, msg, parse_mode = "HTML")
     except:
         bot.send_message(message.chat.id, "⚠️ custom.py文件导入失败")
+
+@bot.message_handler(commands = ['ytdl'])
+@authentication
+def ytdl(message):
+    url = message.text.replace('/ytdl ', '')
+    if (url.replace(' ', '') == '') or (url == '/ytdl'):
+        bot.send_message(message.chat.id, "❗️请在/ytdl后输入链接")
+    else:
+        video_download(url, bot, message)
 
 ###############################
 ###########Aria2命令############
