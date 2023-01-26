@@ -137,8 +137,7 @@ folder = get_config()['folder_path']
 ydl_opts = {
     'format': format_selector,
     'progress_hooks': [my_hook],
-    'paths': {'home': folder, 'temp': folder},
-    'proxy': 'http://127.0.0.1:10809'
+    'paths': {'home': folder, 'temp': folder}
 }
 
 def video_download(url, bot, message):
