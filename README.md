@@ -61,25 +61,33 @@ Anime
 ### 功能演示
 
 用户验证：
+
 ![](screenshots/1.png)
 
 Aria2：
+
 ![](screenshots/2.png)
 
 文件管理：
+
 ![](screenshots/3.png)
 ![](screenshots/4.png)
 
 Onedrive：
+
 ![](screenshots/5.png)
 
 随机二次元图：
+
 ![](screenshots/6.png)
 
 动漫截图搜索：
+
 ![](screenshots/7.png)
 
 ## 配置文件
+
+**配置文件内容格式如下，保存为`settings.ini`**
 
 ```config
 [API]
