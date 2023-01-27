@@ -20,9 +20,15 @@ def get_config():
     try:
         config = configparser.ConfigParser()
         config.read('settings.ini')
+        try:
+            aria2_ip = config['Aria2']['ip']
+            aria2_port = config['Aria2']['port']
+        except:
+            aria2_ip = '127.0.0.1'
+            aria2_port = '6800'
         return {'api_token': config['API']['token'], 'auth_users': config['Auth']['users'],
-                'auth_secret': config['Auth']['secret'], 'aria2_ip': config['Aria2']['ip'],
-                'aria2_port': config['Aria2']['port'], 'aria2_secret': config['Aria2']['secret'],
+                'auth_secret': config['Auth']['secret'], 'aria2_ip': aria2_ip,
+                'aria2_port': aria2_port, 'aria2_secret': config['Aria2']['secret'],
                 'aria2_is_https': config['Aria2']['is_https'] == 'True', 'folder_path': config['File']['folder']}
     except:
         print("配置文件读取失败！")

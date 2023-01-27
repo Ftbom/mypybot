@@ -50,6 +50,23 @@ def authentication(func):
         pass
     return wrapper
 
+def onedrive_func(func):
+    def wrapper(message):
+        try:
+            func(message)
+        except:
+            bot.send_message(message.chat.id, f"⚠️ 请检查Onedrive配置")
+            return
+    return wrapper
+
+def aria2_func(func):
+    def wrapper(message):
+        if not(Aria2.is_connected()):
+            bot.send_message(message.chat.id, f"⚠️ 请检查Aria2配置")
+            return
+        func(message)
+    return wrapper
+
 def auth_and_updata_users(message, auth_secret, bot):
     auth_user(message, auth_secret, bot)
     global auth_users
@@ -122,6 +139,7 @@ def send_welcome(message):
 ################################
 @bot.message_handler(commands = ['onedrive'])
 @authentication
+@onedrive_func
 def onedrive(message):
     global onedrive_parent_path, onedrive_current_path
     #获取根目录下的文件信息
@@ -192,6 +210,7 @@ def receive_file(message):
 
 @bot.message_handler(commands = ['uploadfile'])
 @authentication
+@onedrive_func
 def upload_to_onedrive(message):
     global files_info_store
     #获取文件夹内的所有文件
@@ -256,6 +275,7 @@ def ytdl(message):
 ################################
 @bot.message_handler(commands = ['aria2add'])
 @authentication
+@aria2_func
 def aria2_add_url(message):
     url = message.text.replace('/aria2add ', '')
     if (url.replace(' ', '') == '') or (url == '/aria2add'):
@@ -270,12 +290,14 @@ def aria2_add_url(message):
 
 @bot.message_handler(commands = ['aria2torrent'])
 @authentication
+@aria2_func
 def aria2_add_torrent(message):
     msg = bot.send_message(message.chat.id, "⚠️ 请发送种子文件")
     bot.register_next_step_handler(msg, add_torrent, bot, Aria2)
 
 @bot.message_handler(commands = ['aria2status'])
 @authentication
+@aria2_func
 def show_active(message):
     button = {'刷新': {'callback_data': 'refresh'}, '取消': {'callback_data': 'cancel'}}
     text = generate_text(Aria2)
@@ -283,6 +305,7 @@ def show_active(message):
 
 @bot.message_handler(commands = ['aria2pause'])
 @authentication
+@aria2_func
 def pause(message):
     global aria2_pause_store
     text = '请输入要暂停的项的序号：\n⬇️正在下载：'
@@ -301,6 +324,7 @@ def pause(message):
 
 @bot.message_handler(commands = ['aria2unpause'])
 @authentication
+@aria2_func
 def unpause(message):
     global aria2_unpause_store
     text = '请输入要恢复的项的序号：\n▶️已暂停：'
@@ -313,6 +337,7 @@ def unpause(message):
 
 @bot.message_handler(commands = ['aria2remove'])
 @authentication
+@aria2_func
 def remove(message):
     global aria2_remove_store
     text = '请输入要删除的项的序号：\n⬇️正在下载：'
@@ -327,6 +352,7 @@ def remove(message):
 
 @bot.message_handler(commands = ['aria2rmstopped'])
 @authentication
+@aria2_func
 def remove(message):
     global aria2_rmstopped_store
     text = '请输入要删除的项的序号：\n⏹已停止：'

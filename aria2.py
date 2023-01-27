@@ -63,6 +63,18 @@ class aria2():
         else:
             self.aira2_url = f'http://{ip}:{port}/jsonrpc'
         self.token = token
+    
+    def is_connected(self):
+        jsonreq = json.dumps({'jsonrpc':'2.0', 'id':'qwer',
+	    			'method':'aria2.getVersion',
+              	    'params':[f"token:{self.token}"]})
+        try:
+            info = requests.post(self.aira2_url, jsonreq).json()
+            if 'error' in info:
+                return False
+            return True
+        except:
+            return False
 
     @add_download
     def add_url(self, url):
