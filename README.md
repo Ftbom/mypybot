@@ -11,6 +11,17 @@ pip install -r requirements.txt
 python main.py
 ```
 
+## Telegram Api设置代理
+
+在`main.py`文件开头加入：
+
+```python
+from telebot import apihelper
+apihelper.proxy = {'http': 'http://127.0.0.1:108', 'https': 'http://127.0.0.1:108'}
+```
+
+`http://127.0.0.1:108`为代理地址
+
 ## 功能
 
 已实现：
@@ -140,6 +151,6 @@ client_secret =
 
 仅支持Onedrive for Business
 
-Onedrive应用需要`Files.ReadWrite.All`权限
+Onedrive应用需要`Files.ReadWrite.All`权限，重定向URL选择web，设置为`http://localhost:5000/getAToken`
 
 若设置此项，第一次运行时，需按终端的输出提示进行Onedrive应用授权
