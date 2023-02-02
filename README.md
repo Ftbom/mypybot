@@ -22,6 +22,17 @@ apihelper.proxy = {'http': 'http://127.0.0.1:108', 'https': 'http://127.0.0.1:10
 
 `http://127.0.0.1:108`为代理地址
 
+## 替换官方Api地址
+
+在`main.py`文件开头加入：
+
+```python
+from telebot import apihelper
+apihelper.API_URL = "http://localhost:4200/bot{0}/{1}"
+```
+
+参考：[Using local Bot API Sever](https://github.com/eternnoir/pyTelegramBotAPI#using-local-bot-api-sever)，[Issues#3](https://github.com/Ftbom/mypybot/issues/3)
+
 ## 功能
 
 已实现：
